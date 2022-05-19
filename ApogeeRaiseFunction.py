@@ -10,8 +10,8 @@ def ApogeeRaise(apogeeStart):
     apogeeEnd = 410000
     rEarth = 6378
     rStart = rEarth+185
-    aStart = 
-    aEnd   = 
+    aStart = (185+rEarth + apogeeStart+rEarth)/2
+    aEnd   = (185+rEarth + apogeeEnd+rEarth)/2
         
     vStart = 
     vEnd   = 
