@@ -22,15 +22,15 @@ class Phase:
 
 
         # Calculate Impulse Propellant Using Rocket Equation   
-        mPropImpulse = 
+        mPropImpulse = mStart/np.exp(dvPhase/(9.81*clsEng.isp))
 
    
         # Determine Oxidizer and Fuel
-        mPropImpulseOx = 
+        mPropImpulseOx = mPropImpulse*clsEng.mr/(1+clsEng.mr)
         mPropImpulseFuel = mPropImpulse/(1+clsEng.mr)
         
           
-        mEnd = 
+        mEnd = mStart - mPropImpulse
         
         
         # Move data to class structure to save information
@@ -75,6 +75,6 @@ class MissionSummary:
 
 class Engine:
     def __init__(self,isp, thrust, mr):
-        self.isp = 
-        self.thrust = 
-        self.mr =
+        self.isp = isp
+        self.thrust = thrust
+        self.mr = mr
