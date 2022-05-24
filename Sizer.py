@@ -1,6 +1,6 @@
 import numpy as np
-import Classes_HW3 as cf
-import FunctionFile as ff # needed for the apogeeRaise function
+import Classes as cf
+import ApogeeRaiseFunction as ff # needed for the apogeeRaise function
 import matplotlib.pyplot as plt
 
 
@@ -22,7 +22,7 @@ for jj, thrust in enumerate(thrSweep):
         # Calculate the DV to raise the orbit. The equation is representative 
         # of launch performance
         apogeeOrbit= 7.7999e-10*mLaunch**4-2.1506e-5*mLaunch**3+2.2196e-1*mLaunch**2-1.0181e3*mLaunch+1.7624e6
-        dvReq   = ApogeeRaiseFunction(apogeeOrbit) # Apogee Raise function
+        dvReq   = ff.ApogeeRaise(apogeeOrbit) # Apogee Raise function
         
         # Define the engine. Assume an Isp of 450 s
         engMain = cf.Engine(450, thrSweep[jj], 5.5)
@@ -50,28 +50,28 @@ Mission = cf.MissionSummary(phaseList)
 
 
 # Start the plotting stuff 
-fig1 = plt.figure()
-strLegend=list()
-for ii in range(thrSweep.size):                   
-    plt.plot(, linewidth=3.0)
-    strLegend.append('Thrust={0:6.0f} N'.format(thrSweep[ii]))
+# fig1 = plt.figure()
+# strLegend=list()
+# for ii in range(thrSweep.size):                   
+#     plt.plot(, linewidth=3.0)
+#     strLegend.append('Thrust={0:6.0f} N'.format(thrSweep[ii]))
    
-plt.grid()
-plt.xlabel('Start Mass (kg)')
-plt.ylabel('Payload (kg)')
-plt.legend(strLegend)
+# plt.grid()
+# plt.xlabel('Start Mass (kg)')
+# plt.ylabel('Payload (kg)')
+# plt.legend(strLegend)
 
 
-fig1 = plt.figure()
-# Build up the legend string
-strLegend=list()
-for ii in range(mSeparated.size):                   
-    plt.plot(, linewidth=3.0)
-    strLegend.append('Start Mass={0:5.0f} kg'.format())
-plt.grid()
-plt.xlabel('Thrust/Weight Ratio at PDI Start')
-plt.ylabel('Payload (kg)')
-plt.legend(strLegend)
+# fig1 = plt.figure()
+# # Build up the legend string
+# strLegend=list()
+# for ii in range(mSeparated.size):                   
+#     plt.plot(twPDIStart, linewidth=3.0)
+#     strLegend.append('Start Mass={0:5.0f} kg'.format())
+# plt.grid()
+# plt.xlabel('Thrust/Weight Ratio at PDI Start')
+# plt.ylabel('Payload (kg)')
+# plt.legend(strLegend)
 
 
 
