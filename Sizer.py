@@ -11,9 +11,9 @@ thrSweep    = np.linspace(3000, 15000,13)
 # Initialize variables 
 mStart      = np.zeros((mSeparated.size, thrSweep.size))
 mFinal      = np.zeros((mSeparated.size, thrSweep.size))
-twPDIStart  = 
-dv          = 
-twPhase     = 
+twPDIStart  = np.zeros((mSeparated.size, thrSweep.size))
+dv          = np.zeros((mSeparated.size, thrSweep.size))
+twPhase     = np.zeros((mSeparated.size, thrSweep.size))
 # Loop over thrust:
 for jj, thrust in enumerate(thrSweep): 
     # Loop over launch mass
