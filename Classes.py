@@ -22,29 +22,29 @@ class Phase:
 
 
         # Calculate Impulse Propellant Using Rocket Equation   
-        mPropImpulse = 
+        mPropImpulse = mStart - (mStart/np.exp(dvPhase/(9.81*clsEng.isp)))
 
    
         # Determine Oxidizer and Fuel
-        mPropImpulseOx = 
+        mPropImpulseOx = mPropImpulse*clsEng.mr/(1+clsEng.mr)
         mPropImpulseFuel = mPropImpulse/(1+clsEng.mr)
         
           
-        mEnd = 
+        mEnd = mStart - mPropImpulse
         
         
         # Move data to class structure to save information
         self.mStart         = mStart
         self.mEnd           = mEnd
-        self.dvPhase        = 
-        self.clsEng         = 
-        self.mPropImpulse   = 
-        self.strName        = 
-        self.twPhase        = 
+        self.dvPhase        = dvPhase
+        self.clsEng         = clsEng
+        self.mPropImpulse   = mPropImpulse
+        self.strName        = strName
+        self.twPhase        = twPhase
 
-        self.mPropImpulse   = 
-        self.mPropImpulseOx = 
-        self.mPropImpulseFuel = 
+        self.mPropImpulse   = mPropImpulse
+        self.mPropImpulseOx = mPropImpulseOx
+        self.mPropImpulseFuel = mPropImpulseFuel
           
 class MissionSummary:
     def __init__(self, tupPhases):
@@ -57,24 +57,24 @@ class MissionSummary:
    
         
         mPropImpulse     = 0
-        mPropImpulseOx   = 
-        mPropImpulseFuel = 
+        mPropImpulseOx   = 0
+        mPropImpulseFuel = 0
 
         # sum up the usages by phase
         for curPhase in tupPhases:
             mPropImpulse     += curPhase.mPropImpulse 
-            mPropImpulseOx   += 
-            mPropImpulseFuel += 
+            mPropImpulseOx   += curPhase.mPropImpulseOx
+            mPropImpulseFuel += curPhase.mPropImpulseFuel
 
         # Stuff everything into self    
-        self.mPropImpulse      = 
-        self.mPropImpulseOx    = 
+        self.mPropImpulse      = mPropImpulse
+        self.mPropImpulseOx    = mPropImpulseOx
         self.mPropImpulseFuel  = mPropImpulseFuel
 
 
 
 class Engine:
     def __init__(self,isp, thrust, mr):
-        self.isp = 
-        self.thrust = 
-        self.mr =
+        self.isp = isp
+        self.thrust = thrust
+        self.mr = mr
