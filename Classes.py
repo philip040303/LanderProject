@@ -36,15 +36,15 @@ class Phase:
         # Move data to class structure to save information
         self.mStart         = mStart
         self.mEnd           = mEnd
-        self.dvPhase        = 
-        self.clsEng         = 
-        self.mPropImpulse   = 
-        self.strName        = 
-        self.twPhase        = 
+        self.dvPhase        = dvPhase
+        self.clsEng         = clsEng
+        self.mPropImpulse   = mPropImpulse
+        self.strName        = strName
+        self.twPhase        = twPhase
 
-        self.mPropImpulse   = 
-        self.mPropImpulseOx = 
-        self.mPropImpulseFuel = 
+        self.mPropImpulse   = mPropImpulse
+        self.mPropImpulseOx = mPropImpulseOx
+        self.mPropImpulseFuel = mPropImpulseFuel
           
 class MissionSummary:
     def __init__(self, tupPhases):
