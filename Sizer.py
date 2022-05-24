@@ -43,17 +43,15 @@ for jj, thrust in enumerate(thrSweep):
 phaseList = [TLI, TCM1, TCM2, TCM3, LOI, TCM4, DOI, PDI] # include all your phases
 cf.PrintData(phaseList)
 
-
 Mission = cf.MissionSummary(phaseList)
  
-
 
 
 # Start the plotting stuff 
 fig1 = plt.figure()
 strLegend=list()
 for ii in range(thrSweep.size):                   
-    plt.plot(0, 0, linewidth=3.0)
+    plt.plot(mSeparated, mFinal[:, ii], linewidth=3.0)
     strLegend.append('Thrust={0:6.0f} N'.format(thrSweep[ii]))
    
 plt.grid()
