@@ -30,11 +30,11 @@ for jj, thrust in enumerate(thrSweep):
     
         TLI          = cf.Phase('TLI',    mLaunch,      dvReq, engMain)
         TCM1         = cf.Phase('TCM1',  TLI.mEnd,         20, engMain)
-        TCM2         = 
-        TCM3         = 
-        LOI          = 
-        TCM4         = 
-        DOI          = 
+        TCM2         = cf.Phase('TCM2', TCM1.mEnd,          5, engMain)
+        TCM3         = cf.Phase("TCM3", TCM2.mEnd,          5, engMain)
+        LOI          = cf.Phase("LOI",  TCM3.mEnd,        850, engMain)
+        TCM4         = cf.Phase("TCM4",  LOI.mEnd,          5, engMain)
+        DOI          = cf.Phase("DOI",  TCM4.mEnd,         25, engMain)
         PDI          = cf.Phase('PDI',   DOI.mEnd,         -1, engMain) # we're using -1 to flag a thrust-to-weight calculation
         
         twPDIStart[ii,jj]=thrust/(DOI.mEnd*9.81) # we're saving this use it to plot later
