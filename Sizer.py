@@ -50,28 +50,28 @@ Mission = cf.MissionSummary(phaseList)
 
 
 # Start the plotting stuff 
-# fig1 = plt.figure()
-# strLegend=list()
-# for ii in range(thrSweep.size):                   
-#     plt.plot(, linewidth=3.0)
-#     strLegend.append('Thrust={0:6.0f} N'.format(thrSweep[ii]))
+fig1 = plt.figure()
+strLegend=list()
+for ii in range(thrSweep.size):                   
+    plt.plot(0, 0, linewidth=3.0)
+    strLegend.append('Thrust={0:6.0f} N'.format(thrSweep[ii]))
    
-# plt.grid()
-# plt.xlabel('Start Mass (kg)')
-# plt.ylabel('Payload (kg)')
-# plt.legend(strLegend)
+plt.grid()
+plt.xlabel('Start Mass (kg)')
+plt.ylabel('Payload (kg)')
+plt.legend(strLegend)
 
 
-# fig1 = plt.figure()
-# # Build up the legend string
-# strLegend=list()
-# for ii in range(mSeparated.size):                   
-#     plt.plot(twPDIStart, linewidth=3.0)
-#     strLegend.append('Start Mass={0:5.0f} kg'.format())
-# plt.grid()
-# plt.xlabel('Thrust/Weight Ratio at PDI Start')
-# plt.ylabel('Payload (kg)')
-# plt.legend(strLegend)
+fig1 = plt.figure()
+# Build up the legend string
+strLegend=list()
+for ii in range(mSeparated.size):                   
+    plt.plot(twPDIStart[ii], mFinal[ii], linewidth=3.0)
+    strLegend.append('Start Mass={0:5.0f} kg'.format(mSeparated[ii]))
+plt.grid()
+plt.xlabel('Thrust/Weight Ratio at PDI Start')
+plt.ylabel('Payload (kg)')
+plt.legend(strLegend)
 
 
 
