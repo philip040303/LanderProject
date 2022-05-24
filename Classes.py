@@ -67,8 +67,8 @@ class MissionSummary:
             mPropImpulseFuel += curPhase.mPropImpulseFuel
 
         # Stuff everything into self    
-        self.mPropImpulse      = 
-        self.mPropImpulseOx    = 
+        self.mPropImpulse      = mPropImpulse
+        self.mPropImpulseOx    = mPropImpulseOx
         self.mPropImpulseFuel  = mPropImpulseFuel
 
 
