@@ -22,7 +22,7 @@ class Phase:
 
 
         # Calculate Impulse Propellant Using Rocket Equation   
-        mPropImpulse = mStart/np.exp(dvPhase/(9.81*clsEng.isp))
+        mPropImpulse = mStart - (mStart/np.exp(dvPhase/(9.81*clsEng.isp)))
 
    
         # Determine Oxidizer and Fuel
