@@ -22,7 +22,7 @@ for jj, thrust in enumerate(thrSweep):
         # Calculate the DV to raise the orbit. The equation is representative 
         # of launch performance
         apogeeOrbit= 7.7999e-10*mLaunch**4-2.1506e-5*mLaunch**3+2.2196e-1*mLaunch**2-1.0181e3*mLaunch+1.7624e6
-        dvReq   = # Apogee Raise function
+        dvReq   =  # Apogee Raise function
         
         # Define the engine. Assume an Isp of 450 s
         engMain = cf.Engine(450, thrSweep[jj], 5.5)
@@ -40,7 +40,7 @@ for jj, thrust in enumerate(thrSweep):
         twPDIStart[ii,jj]=thrust/(DOI.mEnd*9.81) # we're saving this use it to plot later
         mFinal[ii,jj] = PDI.mEnd
         
-phaseList = [TLI,  PDI] # include all your phases
+phaseList = [TLI, TCM1, TCM2, TCM3, LOI, TCM4, DOI, PDI] # include all your phases
 cf.PrintData(phaseList)
 
 
