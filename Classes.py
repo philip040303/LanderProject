@@ -57,14 +57,14 @@ class MissionSummary:
    
         
         mPropImpulse     = 0
-        mPropImpulseOx   = 
-        mPropImpulseFuel = 
+        mPropImpulseOx   = 0
+        mPropImpulseFuel = 0
 
         # sum up the usages by phase
         for curPhase in tupPhases:
             mPropImpulse     += curPhase.mPropImpulse 
-            mPropImpulseOx   += 
-            mPropImpulseFuel += 
+            mPropImpulseOx   += curPhase.mPropImpulseOx
+            mPropImpulseFuel += curPhase.mPropImpulseFuel
 
         # Stuff everything into self    
         self.mPropImpulse      = 
