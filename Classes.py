@@ -135,10 +135,13 @@ class MissionSummary:
 
 
 class Engine:
-    def __init__(self,isp, thrust, mr):
+     def __init__(self,isp, thrust, mr, strPropType, strCryo):
+        self.mr = mr
         self.isp = isp
         self.thrust = thrust
-        self.mr = mr
+        self.mdot = thrust/isp/9.81
+        self.strPropType = strPropType
+        self.strCryo = strCryo
 
 class TankSet:
     def __init__(self, strPropType,strMatType, nTanks, lMaxRadTank, presTank, mPropTotal):
