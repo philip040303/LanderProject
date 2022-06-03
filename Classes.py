@@ -117,20 +117,112 @@ class MissionSummary:
 
    
         
+        pctResidual = 0.01 # value from slides
+        
+        # Initialize all values to zero
         mPropImpulse     = 0
         mPropImpulseOx   = 0
         mPropImpulseFuel = 0
+        mPropImpulseMono = 0
+        mPropImpulseReserve = 0
+        mPropImpulseReserveOx = 0
+        mPropImpulseReserveFuel = 0
+        mPropImpulseReserveMono = 0
+        mPropBoiloff     = 0
+        mPropBoiloffOx   = 0
+        mPropBoiloffFuel = 0
+        mPropRCS         = 0
+        
+        mPropChill     = 0
+        mPropChillOx   = 0
+        mPropChillFuel = 0
+        
+        mPropSettling = 0
 
         # sum up the usages by phase
         for curPhase in tupPhases:
             mPropImpulse     += curPhase.mPropImpulse 
             mPropImpulseOx   += curPhase.mPropImpulseOx
             mPropImpulseFuel += curPhase.mPropImpulseFuel
+            mPropImpulseMono += curPhase.mPropImpulseMono
+            
+            mPropImpulseReserve +=  curPhase.mPropImpulseReserve
+            mPropImpulseReserveOx +=  curPhase.mPropImpulseReserveOx
+            mPropImpulseReserveFuel += curPhase.mPropImpulseReserveFuel
+            mPropImpulseReserveMono +=  curPhase.mPropImpulseReserveMono
+            
+            mPropBoiloff     +=  curPhase.mPropBoiloff
+            mPropBoiloffOx   +=  curPhase.mPropBoiloffOx
+            mPropBoiloffFuel +=  curPhase.mPropBoiloffFuel
+            mPropRCS         +=   curPhase.mPropRCS
+            
+            mPropChill       += curPhase.mPropChill
+            mPropChillOx     += curPhase.mPropChillOx
+            mPropChillFuel   += curPhase.mPropChillFuel
+            
+            mPropSettling    += curPhase.mPropSettling
 
         # Stuff everything into self    
+        mPropConsumedOx   = mPropImpulseOx + mPropBoiloffOx + mPropChillOx # Impulse, boiloff, and chill for oxygen
+        mPropConsumedFuel = mPropImpulseFuel + mPropBoiloffFuel + mPropChillFuel # Impulse, boiloff, and chill for fuel 
+        mPropConsumedMono = mPropImpulseMono + mPropRCS + mPropSettling # Impulse, mPropRCS + mPropSettling
+        mPropConsumedTotal = mPropConsumedOx + mPropConsumedFuel + mPropConsumedMono
+        
+        mPropResidualOx    = pctResidual*(mPropConsumedOx + mPropImpulseReserveOx)
+        mPropResidualFuel  = pctResidual*(mPropConsumedFuel + mPropImpulseReserveFuel)
+        mPropResidualMono  = pctResidual*(mPropConsumedMono + mPropImpulseReserveMono)
+        mPropResidualTotal = mPropResidualOx + mPropResidualFuel + mPropResidualMono
+        
+        mPropAtLandingOx    = mPropResidualOx + mPropImpulseReserveOx
+        mPropAtLandingFuel  = mPropResidualFuel + mPropImpulseReserveFuel
+        mPropAtLandingMono  = mPropResidualMono + mPropImpulseReserveMono
+        mPropAtLandingTotal = mPropAtLandingOx + mPropAtLandingFuel + mPropAtLandingMono
+        
+        mPropTotalOx = mPropConsumedOx + mPropAtLandingOx # Consumed + left at landing
+        mPropTotalFuel = mPropConsumedFuel + mPropAtLandingFuel # Consumed + left at landing
+        mPropTotalMono = mPropConsumedMono + mPropAtLandingMono # Consumed + left at landing
+        mPropTotalTotal = mPropTotalOx + mPropTotalFuel + mPropTotalMono
+        
+        dvPhase = np.zeros(len(tupPhases))
+        for ii,curPhase in enumerate(tupPhases):
+            dvPhase[ii] = curPhase.dvPhase 
+        
+        
+        
         self.mPropImpulse      = mPropImpulse
         self.mPropImpulseOx    = mPropImpulseOx
         self.mPropImpulseFuel  = mPropImpulseFuel
+        self.mPropImpulseMono  = mPropImpulseMono
+        self.mPropImpulseReserve = mPropImpulseReserve
+        self.mPropImpulseReserveOx = mPropImpulseReserveOx
+        self.mPropImpulseReserveFuel = mPropImpulseReserveFuel
+        self.mPropImpulseReserveMono = mPropImpulseReserveMono
+        self.mPropBoiloff       = mPropBoiloff
+        self.mPropBoiloffOx     = mPropBoiloffOx
+        self.mPropBoiloffFuel   = mPropBoiloffFuel
+        self.mPropRCS           = mPropRCS
+        self.mPropChill         = mPropChill
+        self.mPropChillOx       = mPropChillOx
+        self.mPropChillFuel     = mPropChillFuel
+        self.mPropSettling      = mPropSettling
+        self.mPropConsumedOx    = mPropConsumedOx
+        self.mPropConsumedFuel  = mPropConsumedFuel
+        self.mPropConsumedMono  = mPropConsumedMono
+        self.mPropConsumedTotal = mPropConsumedTotal
+        self.mPropResidualOx    = mPropResidualOx
+        self.mPropResidualFuel  = mPropResidualFuel
+        self.mPropResidualMono  = mPropResidualMono
+        self.mPropResidualTotal = mPropResidualTotal
+        self.mPropAtLandingOx   = mPropAtLandingOx
+        self.mPropAtLandingFuel = mPropAtLandingFuel
+        self.mPropAtLandingMono = mPropAtLandingMono
+        self.mPropAtLandingTotal= mPropAtLandingTotal
+        self.mPropTotalOx       = mPropTotalOx
+        self.mPropTotalFuel     = mPropTotalFuel
+        self.mPropTotalMono     = mPropTotalMono
+        self.mPropTotalTotal    = mPropTotalTotal
+        self.dvPhase            = dvPhase
+
 
 
 
