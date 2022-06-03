@@ -383,4 +383,15 @@ class Subsystems:
         self.mMargin           = mMargin
         self.mTotalPredicted   = mTotalPredicted
         self.mTotalAllowable   = mTotalAllowable
+
+class Cost:
+    def __init__(self, mDryMass, thrEngine, cstRocket):
+        costRELander = 30000000*((mDryMass/2000)**0.4)
+        costNRELander = 12*costRELander
+        costNREEngine  = 2500*(thrEngine)
+        costNRETotal  = costNRELander + costNREEngine + cstRocket # Lander + Engine + Rocket
         
+        self.costRELander  = costRELander
+        self.costNRELander = costNRELander
+        self.costNREEngine = costNREEngine
+        self.costNRETotal  = costNRETotal
