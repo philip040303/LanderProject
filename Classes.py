@@ -12,7 +12,7 @@ def PrintData(phaseList):
 
 class Phase:
 
-    def __init__(self,strName, mStart, dvPhase, clsEng):
+    def __init__(self,strName, mStart, dvPhase, clsEng, strPhaseType, dtPhase, mdotRCS, mdotOxBoiloff, mdotFuelBoiloff):
 
         # Check if this is a T/W phase. If so, 
         # update the dV calculate the thrust-to-weight
@@ -22,29 +22,90 @@ class Phase:
 
 
         # Calculate Impulse Propellant Using Rocket Equation   
-        mPropImpulse = mStart - (mStart/np.exp(dvPhase/(9.81*clsEng.isp)))
-
-   
-        # Determine Oxidizer and Fuel
-        mPropImpulseOx = mPropImpulse*clsEng.mr/(1+clsEng.mr)
-        mPropImpulseFuel = mPropImpulse/(1+clsEng.mr)
+        mPropImpulse = mStart - mStart / np.exp(dvPhase/(9.81*clsEng.isp))
+        mPropImpulseReserve = mPropImpulse*0.02 # This is 2% of the impulse propellant
+    
+        # Modify phase duration if this is a burn 
+        if dvPhase>0:
+            dtPhase = mPropImpulse/clsEng.mdot
+    
+        # Move the Impulse propellant into the correct category
+        if clsEng.strPropType == "Biprop":
+            mPropImpulseOx = mPropImpulse*clsEng.mr/(1+clsEng.mr) # Use mixture ratio to calculate the ox impulse used
+            mPropImpulseFuel = mPropImpulse/(1+clsEng.mr) # Use mixture ratio to calculate the fuel impulse used
+            
+            mPropImpulseReserveOx = mPropImpulseReserve*0.02  # Use the mixture ratio to calculate the ox reserve
+            mPropImpulseReserveFuel = mPropImpulseReserve*0.02 # Use the mixture ratio to calculate the fuel reserve
+            
+            mPropImpulseMono = 0 # this is a biprop engine, so no monoprop use
+            mPropImpulseReserveMono = 0 # this is a biprop engine, so no monoprop use
+            
+        elif clsEng.strPropType == "Monoprop":
+            mPropImpulseOx = 0 # this is a monoprop engine, so no biprop use
+            mPropImpulseFuel = 0 # this is a monoprop engine, so no biprop use
+            
+            mPropImpulseReserveOx = 0 # this is a monoprop engine, so no biprop use
+            mPropImpulseReserveFuel = 0 # this is a monoprop engine, so no biprop use          
+            
+            mPropImpulseMono = mPropImpulse
+            mPropImpulseReserveMono = mPropImpulse*0.02
         
-          
-        mEnd = mStart - mPropImpulse
+        # Determine boiloff losses
+        mPropBoiloffOx = mdotOxBoiloff*dtPhase # ox boiloff rate times phase duration
+        mPropBoiloffFuel = mdotFuelBoiloff*dtPhase # fuel boiloff rate times phase duration
+        mPropBoiloff   = mPropBoiloffOx + mPropBoiloffFuel # ox + fuel
+        
+        # Determine RCS losses
+        mPropRCS = mdotRCS*dtPhase
+        
+        # Check if this is a chill-in phase
+        if strPhaseType =="Chill":
+            mPropChill = 10
+            mPropChillOx = 5
+            mPropChillFuel = 5
+        else:
+            # not a chill phase, so no extra usage
+            mPropChill = 0
+            mPropChillOx = 0
+            mPropChillFuel = 0
+            
+        if strPhaseType =="Settling":
+            mPropSettling = 5 # settling usage
+        else:
+            mPropSettling = 0 #no settling usage
+
+        
+        # Determine final mass        
+        # subtract impulse, boiloff, rcs, chill, and settling
+        mEnd = mStart - mPropImpulse - mPropBoiloff - mPropRCS - mPropChill - mPropSettling
         
         
         # Move data to class structure to save information
         self.mStart         = mStart
         self.mEnd           = mEnd
+        self.dtPhase        = dtPhase
         self.dvPhase        = dvPhase
         self.clsEng         = clsEng
-        self.mPropImpulse   = mPropImpulse
-        self.strName        = strName
-        self.twPhase        = twPhase
-
+        self.mdotRCS        = mdotRCS
+        self.mdotOxBoiloff  = mdotOxBoiloff 
+        self.mdotFuelBoiloff = mdotFuelBoiloff
         self.mPropImpulse   = mPropImpulse
         self.mPropImpulseOx = mPropImpulseOx
         self.mPropImpulseFuel = mPropImpulseFuel
+        self.mPropImpulseMono = mPropImpulseMono
+        self.mPropImpulseReserve = mPropImpulseReserve
+        self.mPropImpulseReserveOx = mPropImpulseReserveOx
+        self.mPropImpulseReserveFuel = mPropImpulseReserveFuel
+        self.mPropImpulseReserveMono = mPropImpulseReserveMono
+        self.mPropBoiloff       = mPropBoiloff
+        self.mPropBoiloffOx     = mPropBoiloffOx
+        self.mPropBoiloffFuel   = mPropBoiloffFuel
+        self.mPropRCS           = mPropRCS
+        self.twPhase            = twPhase
+        self.mPropChill             = mPropChill
+        self.mPropChillOx           = mPropChillOx
+        self.mPropChillFuel         = mPropChillFuel
+        self.mPropSettling          = mPropSettling
           
 class MissionSummary:
     def __init__(self, tupPhases):
