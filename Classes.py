@@ -359,13 +359,13 @@ class TankSet:
         self.mTotal          = mTotal
         
 class Subsystems:
-    def __init__(self, mVehicleStart, clsEng, clsOxTankSet,clsFuelTankSet, pwrDrawPayload, strArrayType, strLanderSize, tBattery):
+    def __init__(self, mVehicleStart, clsEng, clsOxTankSet,clsFuelTankSet, clsMonoTankSet, pwrDrawPayload, strArrayType, strLanderSize, tBattery):
         pctMarginArray      = 0.3
-        pctDepthOfDischarge = 0.3
+        pctDepthOfDischarge = 0.7
         nrgdenBattery       = 100 # w-hr/kg
-        rhoSOFI             = 50 # Foam insulation density (kg/m3)
+        rhoSOFI             = 50  # Foam insulation density (kg/m3)
         thkSOFI             = 0.005 # Foam insulation thickness (m)
-        rhoMLI              = 80 # multi-layer insulation density (kg/m3)
+        rhoMLI              = 80  # multi-layer insulation density (kg/m3)
         thkMLI              = 0.001 # multi-layer insulation thickness (m)
         pctLandingGear      = 0.08
         pctStructure        = 0.2
@@ -373,11 +373,11 @@ class Subsystems:
         pctMargin           = 0.15 # mass margin percentage
         
         # Avionics
-        mAvionics = 8*(mVehicleStart**0.361)
+        mAvionics = 8*mVehicleStart**0.361
         
         # Electrical Subsystem      
         if strLanderSize =='Small':
-            mPowerConversion = 30
+            mPowerConversion = 30   
             pwrDrawLander    = 300 # W
         else:
             mPowerConversion = 50
@@ -388,21 +388,21 @@ class Subsystems:
         else: 
             pwrdenArray = 75 # w/kg
         
-        lTank = max(clsOxTankSet.lTankLength, clsFuelTankSet.lTankLength) # pick the maximum length of your clsOxTankSet.lTankLength and clsFuelTankSet.lTanklength
-        mWiring   = 1.058*np.sqrt(mVehicleStart)*(lTank**0.25)
+        lTank = max(clsOxTankSet.lTankLength, clsFuelTankSet.lTankLength)
+        mWiring   = 1.058*np.sqrt(mVehicleStart)*lTank**0.25
         
-        pwrTotalMargined = (1+pctMarginArray)*(pwrDrawLander + pwrDrawPayload)#the parenthesis is the sum of lander power and payload power
-        mSolarArray      = pwrTotalMargined / pwrdenArray #divide the total margined power by the density 
+        pwrTotalMargined = (1+pctMarginArray)*(pwrDrawLander+pwrDrawPayload)
+        mSolarArray      = pwrTotalMargined/pwrdenArray  
         
         nrgTotal       = pwrTotalMargined*tBattery
-        nrgTotalMargin = nrgTotal / (1-pctDepthOfDischarge)
-        mBattery       = nrgTotalMargin / nrgdenBattery
+        nrgTotalMargin = nrgTotal/pctDepthOfDischarge
+        mBattery = nrgTotalMargin/nrgdenBattery
         
-        mElectrical = mPowerConversion + mWiring + mSolarArray + mBattery
+        mElectrical = mPowerConversion+mWiring + mSolarArray + mBattery
         
         # Propulsion
         if strLanderSize =='Small':
-            mRCS = 20
+            mRCS = 20 
             mPressurization = 50
             mFeedlines = 20
         else:
@@ -426,17 +426,19 @@ class Subsystems:
             mMLIFuel  = thkMLI*clsFuelTankSet.saTotalPerTank*clsFuelTankSet.nTanks*rhoMLI
             twEngine = 50
         elif clsFuelTankSet.strPropType == 'MMH':
-            mSOFIFuel = 0
+            mSOFIFuel = thkSOFI*clsFuelTankSet.saTotalPerTank*clsFuelTankSet.nTanks*rhoSOFI
             mMLIFuel  = thkMLI*clsFuelTankSet.saTotalPerTank*clsFuelTankSet.nTanks*rhoMLI
             twEngine = 50
         elif clsFuelTankSet.strPropType == 'RP-1':
             mSOFIFuel = 0
-            mMLIFuel  = thkMLI*clsFuelTankSet.saTotalPerTank*clsFuelTankSet.nTanks*rhoMLI
+            mMLIFuel  = thkMLI*clsOxTankSet.saTotalPerTank*clsOxTankSet.nTanks*rhoMLI
             twEngine  = 60
         
         mEngine = 1/(twEngine/clsEng.thrust)/9.81
 
-        mPropulsion = mRCS + mPressurization + mFeedlines + mSOFIOx + mSOFIFuel + mMLIOx + mMLIFuel + mEngine + clsFuelTankSet.mTotal + clsOxTankSet.mTotal
+        # Uncomment these two lines - note the addition of the clsMonoTankSet.mTotal variable
+        mPropulsion = mRCS + mPressurization + mFeedlines + mSOFIOx + mMLIOx + mSOFIFuel + mMLIFuel + mEngine \
+            + clsOxTankSet.mTotal + clsFuelTankSet.mTotal + clsMonoTankSet.mTotal
 
         # Thermal
         mThermal = 0.03*mVehicleStart
@@ -446,9 +448,9 @@ class Subsystems:
         mStructureAndGear    = mDryWithoutStructure/(1-(pctStructure+pctLandingGear) )*(pctStructure+pctLandingGear)
         
         mTotalBasic     = mDryWithoutStructure + mStructureAndGear
-        mMGA            = mTotalBasic*pctMGA
-        mTotalPredicted = mTotalBasic + mMGA
-        mMargin         = mTotalBasic*pctMargin
+        mMGA            = pctMGA*mTotalBasic
+        mTotalPredicted = mTotalBasic+mMGA
+        mMargin         = pctMargin*mTotalBasic
         mTotalAllowable = mTotalPredicted + mMargin
         
             
