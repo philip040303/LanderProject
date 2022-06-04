@@ -106,8 +106,6 @@ for jj, thrust in enumerate(thrSweep):
         twPDIStart[ii,jj]=thrust/(DOI.mEnd*9.81) # we're saving this use it to plot later
 
         payload[ii,jj] = mLaunch - Mission.mPropTotalTotal - subs.mTotalAllowable
-   
-
 
 
 # Start the plotting stuff 
