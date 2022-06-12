@@ -12,7 +12,7 @@ def PrintData(phaseList):
 
 class Phase:
 
-    def __init__(self,strName, mStart, dvPhase, clsEng):
+    def __init__(self,strName, mStart, dvPhase, clsEng, strPhaseType, dtPhase, mdotRCS, mdotOxBoiloff, mdotFuelBoiloff):
 
         # Check if this is a T/W phase. If so, 
         # update the dV calculate the thrust-to-weight
@@ -22,29 +22,90 @@ class Phase:
 
 
         # Calculate Impulse Propellant Using Rocket Equation   
-        mPropImpulse = mStart - (mStart/np.exp(dvPhase/(9.81*clsEng.isp)))
-
-   
-        # Determine Oxidizer and Fuel
-        mPropImpulseOx = mPropImpulse*clsEng.mr/(1+clsEng.mr)
-        mPropImpulseFuel = mPropImpulse/(1+clsEng.mr)
+        mPropImpulse = mStart - mStart / np.exp(dvPhase/(9.81*clsEng.isp))
+        mPropImpulseReserve = mPropImpulse*0.02 # This is 2% of the impulse propellant
+    
+        # Modify phase duration if this is a burn 
+        if dvPhase>0:
+            dtPhase = mPropImpulse/clsEng.mdot
+    
+        # Move the Impulse propellant into the correct category
+        if clsEng.strPropType == "Biprop":
+            mPropImpulseOx = mPropImpulse*clsEng.mr/(1+clsEng.mr) # Use mixture ratio to calculate the ox impulse used
+            mPropImpulseFuel = mPropImpulse/(1+clsEng.mr) # Use mixture ratio to calculate the fuel impulse used
+            
+            mPropImpulseReserveOx = mPropImpulseReserve*0.02  # Use the mixture ratio to calculate the ox reserve
+            mPropImpulseReserveFuel = mPropImpulseReserve*0.02 # Use the mixture ratio to calculate the fuel reserve
+            
+            mPropImpulseMono = 0 # this is a biprop engine, so no monoprop use
+            mPropImpulseReserveMono = 0 # this is a biprop engine, so no monoprop use
+            
+        elif clsEng.strPropType == "Monoprop":
+            mPropImpulseOx = 0 # this is a monoprop engine, so no biprop use
+            mPropImpulseFuel = 0 # this is a monoprop engine, so no biprop use
+            
+            mPropImpulseReserveOx = 0 # this is a monoprop engine, so no biprop use
+            mPropImpulseReserveFuel = 0 # this is a monoprop engine, so no biprop use          
+            
+            mPropImpulseMono = mPropImpulse
+            mPropImpulseReserveMono = mPropImpulse*0.02
         
-          
-        mEnd = mStart - mPropImpulse
+        # Determine boiloff losses
+        mPropBoiloffOx = mdotOxBoiloff*dtPhase # ox boiloff rate times phase duration
+        mPropBoiloffFuel = mdotFuelBoiloff*dtPhase # fuel boiloff rate times phase duration
+        mPropBoiloff   = mPropBoiloffOx + mPropBoiloffFuel # ox + fuel
+        
+        # Determine RCS losses
+        mPropRCS = mdotRCS*dtPhase
+        
+        # Check if this is a chill-in phase
+        if strPhaseType =="Chill":
+            mPropChill = 10
+            mPropChillOx = 5
+            mPropChillFuel = 5
+        else:
+            # not a chill phase, so no extra usage
+            mPropChill = 0
+            mPropChillOx = 0
+            mPropChillFuel = 0
+            
+        if strPhaseType =="Settling":
+            mPropSettling = 5 # settling usage
+        else:
+            mPropSettling = 0 #no settling usage
+
+        
+        # Determine final mass        
+        # subtract impulse, boiloff, rcs, chill, and settling
+        mEnd = mStart - mPropImpulse - mPropBoiloff - mPropRCS - mPropChill - mPropSettling
         
         
         # Move data to class structure to save information
         self.mStart         = mStart
         self.mEnd           = mEnd
+        self.dtPhase        = dtPhase
         self.dvPhase        = dvPhase
         self.clsEng         = clsEng
-        self.mPropImpulse   = mPropImpulse
-        self.strName        = strName
-        self.twPhase        = twPhase
-
+        self.mdotRCS        = mdotRCS
+        self.mdotOxBoiloff  = mdotOxBoiloff 
+        self.mdotFuelBoiloff = mdotFuelBoiloff
         self.mPropImpulse   = mPropImpulse
         self.mPropImpulseOx = mPropImpulseOx
         self.mPropImpulseFuel = mPropImpulseFuel
+        self.mPropImpulseMono = mPropImpulseMono
+        self.mPropImpulseReserve = mPropImpulseReserve
+        self.mPropImpulseReserveOx = mPropImpulseReserveOx
+        self.mPropImpulseReserveFuel = mPropImpulseReserveFuel
+        self.mPropImpulseReserveMono = mPropImpulseReserveMono
+        self.mPropBoiloff       = mPropBoiloff
+        self.mPropBoiloffOx     = mPropBoiloffOx
+        self.mPropBoiloffFuel   = mPropBoiloffFuel
+        self.mPropRCS           = mPropRCS
+        self.twPhase            = twPhase
+        self.mPropChill             = mPropChill
+        self.mPropChillOx           = mPropChillOx
+        self.mPropChillFuel         = mPropChillFuel
+        self.mPropSettling          = mPropSettling
           
 class MissionSummary:
     def __init__(self, tupPhases):
@@ -56,28 +117,123 @@ class MissionSummary:
 
    
         
+        pctResidual = 0.01 # value from slides
+        
+        # Initialize all values to zero
         mPropImpulse     = 0
         mPropImpulseOx   = 0
         mPropImpulseFuel = 0
+        mPropImpulseMono = 0
+        mPropImpulseReserve = 0
+        mPropImpulseReserveOx = 0
+        mPropImpulseReserveFuel = 0
+        mPropImpulseReserveMono = 0
+        mPropBoiloff     = 0
+        mPropBoiloffOx   = 0
+        mPropBoiloffFuel = 0
+        mPropRCS         = 0
+        
+        mPropChill     = 0
+        mPropChillOx   = 0
+        mPropChillFuel = 0
+        
+        mPropSettling = 0
 
         # sum up the usages by phase
         for curPhase in tupPhases:
             mPropImpulse     += curPhase.mPropImpulse 
             mPropImpulseOx   += curPhase.mPropImpulseOx
             mPropImpulseFuel += curPhase.mPropImpulseFuel
+            mPropImpulseMono += curPhase.mPropImpulseMono
+            
+            mPropImpulseReserve +=  curPhase.mPropImpulseReserve
+            mPropImpulseReserveOx +=  curPhase.mPropImpulseReserveOx
+            mPropImpulseReserveFuel += curPhase.mPropImpulseReserveFuel
+            mPropImpulseReserveMono +=  curPhase.mPropImpulseReserveMono
+            
+            mPropBoiloff     +=  curPhase.mPropBoiloff
+            mPropBoiloffOx   +=  curPhase.mPropBoiloffOx
+            mPropBoiloffFuel +=  curPhase.mPropBoiloffFuel
+            mPropRCS         +=   curPhase.mPropRCS
+            
+            mPropChill       += curPhase.mPropChill
+            mPropChillOx     += curPhase.mPropChillOx
+            mPropChillFuel   += curPhase.mPropChillFuel
+            
+            mPropSettling    += curPhase.mPropSettling
 
         # Stuff everything into self    
+        mPropConsumedOx   = mPropImpulseOx + mPropBoiloffOx + mPropChillOx # Impulse, boiloff, and chill for oxygen
+        mPropConsumedFuel = mPropImpulseFuel + mPropBoiloffFuel + mPropChillFuel # Impulse, boiloff, and chill for fuel 
+        mPropConsumedMono = mPropImpulseMono + mPropRCS + mPropSettling # Impulse, mPropRCS + mPropSettling
+        mPropConsumedTotal = mPropConsumedOx + mPropConsumedFuel + mPropConsumedMono
+        
+        mPropResidualOx    = pctResidual*(mPropConsumedOx + mPropImpulseReserveOx)
+        mPropResidualFuel  = pctResidual*(mPropConsumedFuel + mPropImpulseReserveFuel)
+        mPropResidualMono  = pctResidual*(mPropConsumedMono + mPropImpulseReserveMono)
+        mPropResidualTotal = mPropResidualOx + mPropResidualFuel + mPropResidualMono
+        
+        mPropAtLandingOx    = mPropResidualOx + mPropImpulseReserveOx
+        mPropAtLandingFuel  = mPropResidualFuel + mPropImpulseReserveFuel
+        mPropAtLandingMono  = mPropResidualMono + mPropImpulseReserveMono
+        mPropAtLandingTotal = mPropAtLandingOx + mPropAtLandingFuel + mPropAtLandingMono
+        
+        mPropTotalOx = mPropConsumedOx + mPropAtLandingOx # Consumed + left at landing
+        mPropTotalFuel = mPropConsumedFuel + mPropAtLandingFuel # Consumed + left at landing
+        mPropTotalMono = mPropConsumedMono + mPropAtLandingMono # Consumed + left at landing
+        mPropTotalTotal = mPropTotalOx + mPropTotalFuel + mPropTotalMono
+        
+        dvPhase = np.zeros(len(tupPhases))
+        for ii,curPhase in enumerate(tupPhases):
+            dvPhase[ii] = curPhase.dvPhase 
+        
+        
+        
         self.mPropImpulse      = mPropImpulse
         self.mPropImpulseOx    = mPropImpulseOx
         self.mPropImpulseFuel  = mPropImpulseFuel
+        self.mPropImpulseMono  = mPropImpulseMono
+        self.mPropImpulseReserve = mPropImpulseReserve
+        self.mPropImpulseReserveOx = mPropImpulseReserveOx
+        self.mPropImpulseReserveFuel = mPropImpulseReserveFuel
+        self.mPropImpulseReserveMono = mPropImpulseReserveMono
+        self.mPropBoiloff       = mPropBoiloff
+        self.mPropBoiloffOx     = mPropBoiloffOx
+        self.mPropBoiloffFuel   = mPropBoiloffFuel
+        self.mPropRCS           = mPropRCS
+        self.mPropChill         = mPropChill
+        self.mPropChillOx       = mPropChillOx
+        self.mPropChillFuel     = mPropChillFuel
+        self.mPropSettling      = mPropSettling
+        self.mPropConsumedOx    = mPropConsumedOx
+        self.mPropConsumedFuel  = mPropConsumedFuel
+        self.mPropConsumedMono  = mPropConsumedMono
+        self.mPropConsumedTotal = mPropConsumedTotal
+        self.mPropResidualOx    = mPropResidualOx
+        self.mPropResidualFuel  = mPropResidualFuel
+        self.mPropResidualMono  = mPropResidualMono
+        self.mPropResidualTotal = mPropResidualTotal
+        self.mPropAtLandingOx   = mPropAtLandingOx
+        self.mPropAtLandingFuel = mPropAtLandingFuel
+        self.mPropAtLandingMono = mPropAtLandingMono
+        self.mPropAtLandingTotal= mPropAtLandingTotal
+        self.mPropTotalOx       = mPropTotalOx
+        self.mPropTotalFuel     = mPropTotalFuel
+        self.mPropTotalMono     = mPropTotalMono
+        self.mPropTotalTotal    = mPropTotalTotal
+        self.dvPhase            = dvPhase
+
 
 
 
 class Engine:
-    def __init__(self,isp, thrust, mr):
+     def __init__(self,isp, thrust, mr, strPropType, strCryo):
+        self.mr = mr
         self.isp = isp
         self.thrust = thrust
-        self.mr = mr
+        self.mdot = thrust/isp/9.81
+        self.strPropType = strPropType
+        self.strCryo = strCryo
 
 class TankSet:
     def __init__(self, strPropType,strMatType, nTanks, lMaxRadTank, presTank, mPropTotal):
@@ -203,13 +359,13 @@ class TankSet:
         self.mTotal          = mTotal
         
 class Subsystems:
-    def __init__(self, mVehicleStart, clsEng, clsOxTankSet,clsFuelTankSet, pwrDrawPayload, strArrayType, strLanderSize, tBattery):
+    def __init__(self, mVehicleStart, clsEng, clsOxTankSet,clsFuelTankSet, clsMonoTankSet, pwrDrawPayload, strArrayType, strLanderSize, tBattery):
         pctMarginArray      = 0.3
-        pctDepthOfDischarge = 0.3
+        pctDepthOfDischarge = 0.7
         nrgdenBattery       = 100 # w-hr/kg
-        rhoSOFI             = 50 # Foam insulation density (kg/m3)
+        rhoSOFI             = 50  # Foam insulation density (kg/m3)
         thkSOFI             = 0.005 # Foam insulation thickness (m)
-        rhoMLI              = 80 # multi-layer insulation density (kg/m3)
+        rhoMLI              = 80  # multi-layer insulation density (kg/m3)
         thkMLI              = 0.001 # multi-layer insulation thickness (m)
         pctLandingGear      = 0.08
         pctStructure        = 0.2
@@ -217,11 +373,11 @@ class Subsystems:
         pctMargin           = 0.15 # mass margin percentage
         
         # Avionics
-        mAvionics = 8*(mVehicleStart**0.361)
+        mAvionics = 8*mVehicleStart**0.361
         
         # Electrical Subsystem      
         if strLanderSize =='Small':
-            mPowerConversion = 30
+            mPowerConversion = 30   
             pwrDrawLander    = 300 # W
         else:
             mPowerConversion = 50
@@ -232,21 +388,21 @@ class Subsystems:
         else: 
             pwrdenArray = 75 # w/kg
         
-        lTank = max(clsOxTankSet.lTankLength, clsFuelTankSet.lTankLength) # pick the maximum length of your clsOxTankSet.lTankLength and clsFuelTankSet.lTanklength
-        mWiring   = 1.058*np.sqrt(mVehicleStart)*(lTank**0.25)
+        lTank = max(clsOxTankSet.lTankLength, clsFuelTankSet.lTankLength)
+        mWiring   = 1.058*np.sqrt(mVehicleStart)*lTank**0.25
         
-        pwrTotalMargined = (1+pctMarginArray)*(pwrDrawLander + pwrDrawPayload)#the parenthesis is the sum of lander power and payload power
-        mSolarArray      = pwrTotalMargined / pwrdenArray #divide the total margined power by the density 
+        pwrTotalMargined = (1+pctMarginArray)*(pwrDrawLander+pwrDrawPayload)
+        mSolarArray      = pwrTotalMargined/pwrdenArray  
         
         nrgTotal       = pwrTotalMargined*tBattery
-        nrgTotalMargin = nrgTotal / (1-pctDepthOfDischarge)
-        mBattery       = nrgTotalMargin / nrgdenBattery
+        nrgTotalMargin = nrgTotal/pctDepthOfDischarge
+        mBattery = nrgTotalMargin/nrgdenBattery
         
-        mElectrical = mPowerConversion + mWiring + mSolarArray + mBattery
+        mElectrical = mPowerConversion+mWiring + mSolarArray + mBattery
         
         # Propulsion
         if strLanderSize =='Small':
-            mRCS = 20
+            mRCS = 20 
             mPressurization = 50
             mFeedlines = 20
         else:
@@ -270,17 +426,19 @@ class Subsystems:
             mMLIFuel  = thkMLI*clsFuelTankSet.saTotalPerTank*clsFuelTankSet.nTanks*rhoMLI
             twEngine = 50
         elif clsFuelTankSet.strPropType == 'MMH':
-            mSOFIFuel = 0
+            mSOFIFuel = thkSOFI*clsFuelTankSet.saTotalPerTank*clsFuelTankSet.nTanks*rhoSOFI
             mMLIFuel  = thkMLI*clsFuelTankSet.saTotalPerTank*clsFuelTankSet.nTanks*rhoMLI
             twEngine = 50
         elif clsFuelTankSet.strPropType == 'RP-1':
             mSOFIFuel = 0
-            mMLIFuel  = thkMLI*clsFuelTankSet.saTotalPerTank*clsFuelTankSet.nTanks*rhoMLI
+            mMLIFuel  = thkMLI*clsOxTankSet.saTotalPerTank*clsOxTankSet.nTanks*rhoMLI
             twEngine  = 60
         
         mEngine = 1/(twEngine/clsEng.thrust)/9.81
 
-        mPropulsion = mRCS + mPressurization + mFeedlines + mSOFIOx + mSOFIFuel + mMLIOx + mMLIFuel + mEngine + clsFuelTankSet.mTotal + clsOxTankSet.mTotal
+        # Uncomment these two lines - note the addition of the clsMonoTankSet.mTotal variable
+        mPropulsion = mRCS + mPressurization + mFeedlines + mSOFIOx + mMLIOx + mSOFIFuel + mMLIFuel + mEngine \
+            + clsOxTankSet.mTotal + clsFuelTankSet.mTotal + clsMonoTankSet.mTotal
 
         # Thermal
         mThermal = 0.03*mVehicleStart
@@ -290,9 +448,9 @@ class Subsystems:
         mStructureAndGear    = mDryWithoutStructure/(1-(pctStructure+pctLandingGear) )*(pctStructure+pctLandingGear)
         
         mTotalBasic     = mDryWithoutStructure + mStructureAndGear
-        mMGA            = mTotalBasic*pctMGA
-        mTotalPredicted = mTotalBasic + mMGA
-        mMargin         = mTotalBasic*pctMargin
+        mMGA            = pctMGA*mTotalBasic
+        mTotalPredicted = mTotalBasic+mMGA
+        mMargin         = pctMargin*mTotalBasic
         mTotalAllowable = mTotalPredicted + mMargin
         
             
@@ -319,4 +477,15 @@ class Subsystems:
         self.mMargin           = mMargin
         self.mTotalPredicted   = mTotalPredicted
         self.mTotalAllowable   = mTotalAllowable
+
+class Cost:
+    def __init__(self, mDryMass, thrEngine, cstRocket):
+        costRELander = 30000000*((mDryMass/2000)**0.4)
+        costNRELander = 12*costRELander
+        costNREEngine  = 2500*(thrEngine)
+        costNRETotal  = costNRELander + costNREEngine + cstRocket # Lander + Engine + Rocket
         
+        self.costRELander  = costRELander
+        self.costNRELander = costNRELander
+        self.costNREEngine = costNREEngine
+        self.costNRETotal  = costNRETotal
