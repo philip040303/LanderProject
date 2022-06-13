@@ -489,3 +489,16 @@ class Cost:
         self.costNRELander = costNRELander
         self.costNREEngine = costNREEngine
         self.costNRETotal  = costNRETotal
+        
+        
+class Configuration:
+    def __init__(self, rocket, mLaunch, prop, ispEng, thrEng, matTanks, numTanks, typeArray):
+        
+        self.rocket = rocket
+        self.mLaunch = mLaunch
+        self.prop = prop
+        self.ispEng = ispEng
+        self.thrEng = thrEng
+        self.matTanks = matTanks
+        self.numTanks = numTanks
+        self.typeArray = typeArray
