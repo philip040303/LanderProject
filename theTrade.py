@@ -33,11 +33,11 @@ cost     = np.zeros((nDataPointsMass, np.size(ispSweep)))
 
 mdotRCS     = 3 / 86400     # divide by seconds per day to get rate per second
 
-config1 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0) #for top five configurations
-config2 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0)
-config3 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0)
-config4 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0)
-config5 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0)
+config1 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0) #for top five configurations
+config2 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+config3 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+config4 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+config5 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
 
 maxPayload = 0
 
@@ -170,6 +170,6 @@ for jj, ispEngine in enumerate(ispSweep):
                                     rocket = "Vanguard"
                                 else:
                                     rocket = "Nike"
-                                config1 = cf.Configuration(rocket, mLaunch, FuelTanks.strPropType, OxTanks.strPropType, ispEngine, thrEngine, OxTanks.strMatType, numTanks, typeArray, cost)
+                                config1 = cf.Configuration(rocket, mLaunch, FuelTanks.strPropType, OxTanks.strPropType, ispEngine, thrEngine, OxTanks.strMatType, numTanks, typeArray, cost, payload)
                             
 print(maxPayload)
