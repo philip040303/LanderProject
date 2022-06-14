@@ -492,11 +492,12 @@ class Cost:
         
         
 class Configuration:
-    def __init__(self, rocket, mLaunch, prop, ispEng, thrEng, matTanks, numTanks, typeArray):
+    def __init__(self, rocket, mLaunch, fuel, ox, ispEng, thrEng, matTanks, numTanks, typeArray, cost):
         
         self.rocket = rocket
         self.mLaunch = mLaunch
-        self.prop = prop
+        self.fuel = fuel
+        self.ox = ox
         self.ispEng = ispEng
         self.thrEng = thrEng
         self.matTanks = matTanks
