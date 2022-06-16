@@ -496,7 +496,7 @@ class Configuration:
         
         self.strRocket = strRocket
         self.mLaunch = mLaunch
-        self.strFuel = Fuel
+        self.strFuel = strFuel
         self.strOx = strOx
         self.ispEng = ispEng
         self.thrEng = thrEng
