@@ -28,18 +28,25 @@ mPayload    = np.zeros((nDataPointsMass, np.size(ispSweep)))
 mDry        = np.zeros((nDataPointsMass, np.size(ispSweep)))
 dv          = np.zeros((nDataPointsMass, np.size(ispSweep)))
 twPhase     = np.zeros((nDataPointsMass, np.size(ispSweep)))
-cost     = np.zeros((nDataPointsMass, np.size(ispSweep)))
-
+#cost     = np.zeros((nDataPointsMass, np.size(ispSweep)))
+cost = 0
 
 mdotRCS     = 3 / 86400     # divide by seconds per day to get rate per second
 
-config1 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0) #for top five configurations
-config2 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
-config3 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
-config4 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
-config5 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+payloadConfig1 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0) #for top five payload Configurations
+payloadConfig2 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+payloadConfig3 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+payloadConfig4 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+payloadConfig5 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+
+costConfig1 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0) #for top five cost Configurations (that meet goal payload)
+costConfig2 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+costConfig3 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+costConfig4 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
+costConfig5 = cf.Configuration("rocket", 0, "fuel", "ox", 0, 0, "matTanks", 0, "typeArray", 0, 0)
 
 maxPayload = 0
+minCost = 1000000000
 
 for jj, ispEngine in enumerate(ispSweep):   
     # The fifth column of rocketData (index 4) contains the rocket of interest
@@ -131,19 +138,22 @@ for jj, ispEngine in enumerate(ispSweep):
                             # Create the Misison Summary and calculate subsystem masses with payload 
                             Mission = cf.MissionSummary(Sequence)
                             
+                            fairingDiameter = 7
+                            rMax = (fairingDiameter-0.2-0.024-0.15-0.3)/numTanks/2
+                            
                             # Check tanks based on Isp (since each value is a different propellant
                             if ispEngine==340: #storable
-                                OxTanks = cf.TankSet("NTO", matTank, numTanks, 1, 300000, Mission.mPropTotalOx)
-                                FuelTanks = cf.TankSet("MMH", matTank, numTanks, 2, 300000, Mission.mPropTotalFuel)
+                                OxTanks = cf.TankSet("NTO", matTank, numTanks, rMax, 300000, Mission.mPropTotalOx)
+                                FuelTanks = cf.TankSet("MMH", matTank, numTanks, rMax, 300000, Mission.mPropTotalFuel)
                             elif ispEngine==345: # LOX/RP1
-                                OxTanks = cf.TankSet("Oxygen", matTank, numTanks, 1, 300000, Mission.mPropTotalOx)
-                                FuelTanks = cf.TankSet("RP-1", matTank, numTanks, 2, 300000, Mission.mPropTotalFuel)   
+                                OxTanks = cf.TankSet("Oxygen", matTank, numTanks, rMax, 300000, Mission.mPropTotalOx)
+                                FuelTanks = cf.TankSet("RP-1", matTank, numTanks, rMax, 300000, Mission.mPropTotalFuel)   
                             elif ispEngine==370: # LOX/Methane
-                                OxTanks = cf.TankSet("Oxygen", matTank, numTanks, 1, 300000, Mission.mPropTotalOx)
-                                FuelTanks = cf.TankSet("Methane", matTank, numTanks, 2, 300000, Mission.mPropTotalFuel)  
+                                OxTanks = cf.TankSet("Oxygen", matTank, numTanks, rMax, 300000, Mission.mPropTotalOx)
+                                FuelTanks = cf.TankSet("Methane", matTank, numTanks, rMax, 300000, Mission.mPropTotalFuel)  
                             else:
-                                OxTanks = cf.TankSet("Oxygen", matTank, numTanks, 1, 300000, Mission.mPropTotalOx)
-                                FuelTanks = cf.TankSet("Hydrogen", matTank, numTanks, 2, 300000, Mission.mPropTotalFuel)  
+                                OxTanks = cf.TankSet("Oxygen", matTank, numTanks, rMax, 300000, Mission.mPropTotalOx)
+                                FuelTanks = cf.TankSet("Hydrogen", matTank, numTanks, rMax, 300000, Mission.mPropTotalFuel)  
                             
                             # Calculate monopropellant tank size
                             MonoTanks = cf.TankSet("MMH", matTank, 1, 2, 300000, Mission.mPropTotalMono)    
@@ -154,14 +164,14 @@ for jj, ispEngine in enumerate(ispSweep):
                             
                             # Determine Cost
                             costObject = cf.Cost(mLaunch-Mission.mPropTotalTotal, engMain.thrust, 60)
-                            cost[ii,jj] = costObject.costNRETotal
+                            cost = costObject.costNRETotal
                             
                             if payload > maxPayload:
                                 maxPayload = payload
-                                config5 = config4
-                                config4 = config3
-                                config3 = config2
-                                config2 = config1
+                                payloadConfig5 = payloadConfig4
+                                payloadConfig4 = payloadConfig3
+                                payloadConfig3 = payloadConfig2
+                                payloadConfig2 = payloadConfig1
                                 if rr == 0:
                                     rocket = "Scout"
                                 elif rr == 1:
@@ -170,6 +180,16 @@ for jj, ispEngine in enumerate(ispSweep):
                                     rocket = "Vanguard"
                                 else:
                                     rocket = "Nike"
-                                config1 = cf.Configuration(rocket, mLaunch, FuelTanks.strPropType, OxTanks.strPropType, ispEngine, thrEngine, OxTanks.strMatType, numTanks, typeArray, cost, payload)
+                                payloadConfig1 = cf.Configuration(rocket, mLaunch, FuelTanks.strPropType, OxTanks.strPropType, ispEngine, thrEngine, OxTanks.strMatType, numTanks, typeArray, cost, payload)
                             
+                            if (cost < minCost) and (payload >= 1500):
+                                minCost = cost
+                                costConfig5 = costConfig4
+                                costConfig4 = costConfig3
+                                costConfig3 = costConfig2
+                                costConfig2 = costConfig1
+                                costConfig1 = cf.Configuration(rocket, mLaunch, FuelTanks.strPropType, OxTanks.strPropType, ispEngine, thrEngine, OxTanks.strMatType, numTanks, typeArray, cost, payload)
+           
+                        
+           
 print(maxPayload)

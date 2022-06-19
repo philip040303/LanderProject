@@ -503,5 +503,6 @@ class Configuration:
         self.strMatTanks = strMatTanks
         self.numTanks = numTanks
         self.strTypeArray = strTypeArray
+        self.cost = cost
         self.payload = payload
         
